@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Управление RGB Лентой</title>
+  <title>RGB Контроль</title>
   <style>
     body {
       text-align: center;
@@ -12,16 +12,17 @@
       padding-top: 50px;
     }
     input[type="color"] {
-      width: 200px;
-      height: 200px;
+      width: 150px;
+      height: 150px;
       border: none;
       background: none;
       cursor: pointer;
+      display: none;
     }
     button {
-      padding: 15px 30px;
-      font-size: 18px;
-      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+      margin: 10px;
       border: none;
       background-color: #333;
       color: white;
@@ -31,24 +32,61 @@
     button:hover {
       background-color: #555;
     }
+    #colorConfirm {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <h1>RGB Лента</h1>
-  <input type="color" id="colorPicker" value="#ffffff"><br>
-  <button id="toggleBtn">Включить / Выключить</button>
+
+  <input type="color" id="colorPicker" value="#ffffff">
+  <br>
+  <button id="toggleBtn">Включить</button>
+  <button id="colorConfirm">Подтвердить цвет</button>
 
   <script>
     const ESP_IP = "http://192.168.1.26";
+    let ledOn = false;
 
-    document.getElementById("colorPicker").addEventListener("input", function () {
-      const color = this.value.substring(1);
+    function updateUI() {
+      const colorPicker = document.getElementById("colorPicker");
+      const confirmBtn = document.getElementById("colorConfirm");
+      const toggleBtn = document.getElementById("toggleBtn");
+
+      if (ledOn) {
+        colorPicker.style.display = "inline-block";
+        confirmBtn.style.display = "inline-block";
+        toggleBtn.textContent = "Выключить";
+      } else {
+        colorPicker.style.display = "none";
+        confirmBtn.style.display = "none";
+        toggleBtn.textContent = "Включить";
+      }
+    }
+
+    document.getElementById("toggleBtn").addEventListener("click", function () {
+      fetch(`${ESP_IP}/toggle`)
+        .then(res => res.text())
+        .then(state => {
+          ledOn = (state === "ON");
+          updateUI();
+        });
+    });
+
+    document.getElementById("colorConfirm").addEventListener("click", function () {
+      const color = document.getElementById("colorPicker").value.substring(1);
       fetch(`${ESP_IP}/color?hex=${color}`);
     });
 
-    document.getElementById("toggleBtn").addEventListener("click", function () {
-      fetch(`${ESP_IP}/toggle`);
-    });
+    window.onload = function () {
+      fetch(`${ESP_IP}/toggle`) 
+        .then(res => res.text())
+        .then(state => {
+          ledOn = (state === "ON");
+          updateUI();
+        });
+    };
   </script>
 </body>
 </html>

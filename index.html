@@ -2,83 +2,55 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Управление лентой</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+  <title>RGB Управление</title>
   <style>
     body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    #picker {
-      margin-top: 50px;
-    }
-
-    #toggle {
-      background: #444;
-      border: none;
-      border-radius: 20px;
-      padding: 15px 30px;
-      font-size: 16px;
+      background: #121212;
       color: white;
-      margin-bottom: 30px;
-      cursor: pointer;
-      transition: background 0.2s;
+      font-family: sans-serif;
     }
-
-    #toggle.active {
-      background: #00c853;
+    input[type="color"] {
+      width: 200px;
+      height: 200px;
+      border: none;
+      background: none;
+    }
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="picker"></div>
-
-  <button id="toggle">Включить</button>
+  <h1>Выбери цвет</h1>
+  <input type="color" id="colorPicker">
+  <button onclick="turnOff()">Выключить</button>
 
   <script>
-    const picker = new iro.ColorPicker("#picker", {
-      width: 280,
-      color: "#ffffff"
+    const espIP = "192.168.1.42"; // IP твоей ESP — замени!
+
+    document.getElementById('colorPicker').addEventListener('input', function () {
+      const hex = this.value;
+      const r = parseInt(hex.substr(1, 2), 16);
+      const g = parseInt(hex.substr(3, 2), 16);
+      const b = parseInt(hex.substr(5, 2), 16);
+      fetch(`http://${espIP}/setColor?r=${r}&g=${g}&b=${b}`);
     });
 
-    const toggle = document.getElementById("toggle");
-    let isOn = true;
-
-    // Telegram WebApp API
-    Telegram.WebApp.ready();
-
-    picker.on('color:change', function(color) {
-      if (!isOn) return;
-      const rgb = color.rgb;
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: "color",
-        r: rgb.r,
-        g: rgb.g,
-        b: rgb.b
-      }));
-    });
-
-    toggle.addEventListener("click", () => {
-      isOn = !isOn;
-      toggle.classList.toggle("active", isOn);
-      toggle.innerText = isOn ? "Включить" : "Выключить";
-
-      Telegram.WebApp.sendData(JSON.stringify({
-        type: "toggle",
-        state: isOn
-      }));
-    });
+    function turnOff() {
+      fetch(`http://${espIP}/turnOff`);
+    }
   </script>
 </body>
 </html>

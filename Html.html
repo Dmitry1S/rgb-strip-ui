@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Управление лентой</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #picker {
+      margin-top: 50px;
+    }
+
+    #toggle {
+      background: #444;
+      border: none;
+      border-radius: 20px;
+      padding: 15px 30px;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 30px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #toggle.active {
+      background: #00c853;
+    }
+  </style>
+</head>
+<body>
+  <div id="picker"></div>
+
+  <button id="toggle">Включить</button>
+
+  <script>
+    const picker = new iro.ColorPicker("#picker", {
+      width: 280,
+      color: "#ffffff"
+    });
+
+    const toggle = document.getElementById("toggle");
+    let isOn = true;
+
+    // Telegram WebApp API
+    Telegram.WebApp.ready();
+
+    picker.on('color:change', function(color) {
+      if (!isOn) return;
+      const rgb = color.rgb;
+      Telegram.WebApp.sendData(JSON.stringify({
+        type: "color",
+        r: rgb.r,
+        g: rgb.g,
+        b: rgb.b
+      }));
+    });
+
+    toggle.addEventListener("click", () => {
+      isOn = !isOn;
+      toggle.classList.toggle("active", isOn);
+      toggle.innerText = isOn ? "Включить" : "Выключить";
+
+      Telegram.WebApp.sendData(JSON.stringify({
+        type: "toggle",
+        state: isOn
+      }));
+    });
+  </script>
+</body>
+</html>
